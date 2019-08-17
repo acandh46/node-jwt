@@ -2,20 +2,18 @@
 const express           = require('express')
 const path              = require('path')
 const bodyParser        = require('body-parser')
+const cookieParser      = require('cookie-parser')
+const flash             = require('connect-flash')
 const session           = require('express-session')
 const cors              = require('cors')
 const mongoose          = require('mongoose')
-const errorHandler      = require('errorhandler')
+const expresHBs         = require('express-handlebars')
 const morgan            = require('morgan')
-const config            = require('config')
-// const passport          = require('passport')
-
-mongoose.promise        = global.Promise
-
+const passport          = require('passport')
+var config              = require('./config/default.json')
 const app               = express()
-const isProduction      = process.env.NODE_ENV === 'production' 
 const port              = process.env.PORT || 3333
-const dbConfig          = config.get('database')
+mongoose.promise        = global.Promise
 
 const connectOption     = {
     keepAlive: true, 
@@ -24,20 +22,24 @@ const connectOption     = {
     useFindAndModify: false,
 }
 
-mongoose.connect(dbConfig, connectOption, (err, db) => {
+mongoose.connect(config.database, connectOption, (err, db) => {
     if(err) throw err
     console.log('Connnected to database')
 })
 
-require('./auth/passport')
+//configure passport
+require('./config/passport')(passport)
 
-// app.use(cors())
+app.use(cors())
 app.use(morgan('dev'))
-app.use(bodyParser.urlencoded({extended: false}))
+app.use(bodyParser.urlencoded({extended: true}))
 app.use(bodyParser.json())
+app.engine("handlebars", expresHBs({defaultLayout: "main"}));
+app.set("view engine","handlebars");
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(session({
-    secret: 'kentodkuda',
+    key: 'user_sid',
+    secret: 'ajenngnjakdjakjdahudhf91831801938019808098183791',
     cookie: {
         maxAge: 60000 
     },
@@ -45,40 +47,10 @@ app.use(session({
     saveUninitialized: false
 }))
 
-// app.use(passport.initialize())
-app.use(require('./routes'));
+app.use(passport.initialize())
+app.use(passport.session());
+app.use(flash())
 
-if(!isProduction){
-    app.use(errorHandler())
-}
-
-// app.use('/auth', require('./controller/C_Auth'))
-
-
-// if(!isProduction){
-//     app.use((req, res, err) => {
-//         res.status(err.status || 500)
-
-//         res.json({
-//             errors: {
-//                 message: err.message, 
-//                 error: err
-//             }
-//         })
-//     })
-// }
-
-
-
-// app.use((err, req, res) => {
-//     res.status(err.status || 500)
-
-//     res.json({
-//         errors: {
-//             message: err.message,
-//             error: {}
-//         }
-//     })
-// })
+require('./routes')(app, passport)
 
 app.listen(port, () => console.log('Server running on port:', port))

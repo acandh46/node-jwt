@@ -1,23 +1,24 @@
 'use strict'
 
-const jwt             = require('jsonwebtoken')
-const secret          = config.get('secret')
+const jwt               = require('jsonwebtoken')
+var config              = require('../config/default.json');
 
 
-function verifyToken(req, res, next){
+function verifyToken(req){
 
     var token = req.header['x-access-token']
-    if(!token){
-        return res.status(403).send({ auth: false, message: 'No token provided.' });
-    }
+    console.log(req.header)
+    // if(!token){
+    //     return res.status(403).send({ auth: false, message: 'No token provided.' });
+    // }
 
-    jwt.verify(token, secret, (err, decoded) => {
-        if(err)
-            return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' });    
+    // jwt.verify(token, config.secret, (err, decoded) => {
+    //     if(err)
+    //         return res.status(500).send({ auth: false, message: 'Failed to authenticate token.' });    
 
-        req.userId = decoded.id
-        next()
-    })
+    //     req.userId = decoded.id
+    //     next()
+    // })
 }
 
 module.exports = verifyToken

@@ -1,20 +1,26 @@
 'use strict'
-
-const router            = require('express').Router();
 const auth              = require('../controller/C_Auth')
 const api               = require('../controller/C_Api')
 const job               = require('../controller/C_Job')
 
-//index
-router.get('/', auth.index)
-router.post('/register', auth.register)
-router.post('/login', auth.login)
+module.exports = (app) => {
+    
+    app.get('/', auth.index)
+    app.post('/register', auth.register)
+    app.post('/login', auth.login)
+    app.get('/logout', auth.logout)
+    app.get('/user', auth.getUser)
 
-//api
-router.get('/api', api.index)
+
+    //loadView
+    app.get('/login', auth.loginView)
+    app.get('/register', auth.registerView)
 
 
-//job
-router.get('/job', job.index)
+    // // app.get('/user', passport.authenticate('jwt', {session: false}), auth.getUser)
 
-module.exports = router
+
+    // app.get('/api', api.index)
+
+    // app.get('/job', job.index)
+}
